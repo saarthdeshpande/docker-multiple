@@ -22,7 +22,7 @@ jobs:
         with:
           username: ${{ secrets.DOCKER_ID }}
           password: ${{ secrets.DOCKER_PASSWORD }}
-        - run: docker push multi-client
+      - run: docker push multi-client
       - run: docker push multi-nginx
       - run: docker push multi-server
       - run: docker push multi-worker
