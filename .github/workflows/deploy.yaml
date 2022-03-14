@@ -1,0 +1,46 @@
+name: Deploy Frontend
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - run: docker build -t react-test -f ./client/Dockerfile.dev ./client
+      - run: docker run -e CI=true react-test npm test -- --coverage
+
+      - run: docker build -t multi-client ./client
+      - run: docker build -t multi-nginx ./nginx
+      - run: docker build -t multi-server ./server
+      - run: docker build -t multi-worker ./worker
+
+      - run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_ID }}" --password-stdin
+      - run: docker push multi-client
+      - run: docker push multi-nginx
+      - run: docker push multi-server
+      - run: docker push multi-worker
+
+#      - name: Generate deployment package
+#        run: zip -r deploy_package.zip . -x '*.git*'
+#      - name: Configure AWS Credentials
+#        uses: aws-actions/configure-aws-credentials@v1
+#        with:
+#          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
+#          aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
+#          aws-region: "ap-south-1"
+#
+#      - name: Upload package to S3 bucket
+#        run: aws s3 cp deploy_package.zip s3://elasticbeanstalk-ap-south-1-198137827861/
+#
+#      - name: Create new ElasticBeanstalk Application Version
+#        run: |
+#          aws elasticbeanstalk create-application-version \
+#          --application-name docker-demo \
+#          --source-bundle S3Bucket="elasticbeanstalk-ap-south-1-198137827861",S3Key="deploy_package.zip" \
+#          --version-label "ver-${{ github.sha }}" \
+#          --description "commit-sha-${{ github.sha }}"
+#      - name: Deploy new ElasticBeanstalk Application Version
+#        run: aws elasticbeanstalk update-environment --environment-name Dockerdemo-env --version-label "ver-${{ github.sha }}"
