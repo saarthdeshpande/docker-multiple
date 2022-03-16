@@ -10,28 +10,21 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v1
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
-      - name: Login to DockerHub
-        uses: docker/login-action@v1
-        with:
-          username: ${{ secrets.DOCKER_ID }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
       
       - run: docker build -t react-test -f ./client/Dockerfile.dev ./client
       - run: docker run -e CI=true react-test npm test -- --coverage
       
-#      - run: docker build -t multi-client ./client
-#      - run: docker build -t multi-nginx ./nginx
-#      - run: docker build -t multi-server ./server
+      - run: docker build -t saarthdeshpande/multi-client:0.1.0 ./client
+      - run: docker build -t saarthdeshpande/multi-nginx:0.1.0 ./nginx
+      - run: docker build -t saarthdeshpande/multi-server:0.1.0 ./server
       - run: docker build -t saarthdeshpande/multi-worker:0.1.0 ./worker
-      - run: docker login -u "${{ secrets.DOCKER_ID }}" -p "${{ secrets.DOCKER_PASSWORD }}" docker.io
-#      - run: docker push multi-client
-#      - run: docker push multi-nginx
-#      - run: docker push multi-server
+      - run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_ID }}" --password-stdin
+
+      - run: docker push saarthdeshpande/multi-client:0.1.0
+      - run: docker push saarthdeshpande/multi-nginx:0.1.0
+      - run: docker push saarthdeshpande/multi-server:0.1.0
       - run: docker push saarthdeshpande/multi-worker:0.1.0
+
 #      - name: Login to Docker Hub
 #        uses: docker/login-action@v1
 #        with:
